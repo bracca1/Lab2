@@ -12,7 +12,7 @@ IntervalTimer lowTimer;
 
 // Output signal at 490Hz (period in microseconds)
 static uint16_t SIGNAL_F = 490;
-static uint16_t SIGNAL_T = 1 / SIGNAL_F * 1000000;
+static uint16_t SIGNAL_T = 1000000 / SIGNAL_F;
 
 // Default duty cycle to 50%
 static uint16_t lastPot = 512;
