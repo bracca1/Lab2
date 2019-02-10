@@ -46,11 +46,25 @@ void loop() {
   uint16_t newInput = analogRead(PIN_A9);
   interrupts();
 
-  // Update duty cycle if necessary
-  state = newInput == 0 ? STATE_OFF : STATE_ON;
-  if (newInput != lastPot) {
-    high_T = map(newInput, 0, 1023, 0, SIGNAL_T);
-    lastPot = newInput;
+  switch (state) {
+    case STATE_ON:
+      // If new input ~= 0, turn it all off
+      if (newInput <= 1) {
+        state = STATE_OFF;
+        highTimer.end();
+      } else if (newInput != lastPot) {
+        // If input is new, update duty cycle
+        high_T = map(newInput, 0, 1023, 0, SIGNAL_T);
+        lastPot = newInput;
+      }
+      break;
+    case STATE_OFF:
+      // If new input > 1, turn it back on
+      if (newInput > 1) {
+        state = STATE_ON;
+        highTimer.begin(goHigh, SIGNAL_T);
+      }
+      break;
   }
 }
 
