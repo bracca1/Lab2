@@ -5,8 +5,13 @@
 void goHigh(void);
 void goLow(void);
 
+/*---------------State Definitions--------------------------*/
+typedef enum {
+  STATE_ON, STATE_OFF
+} States_t;
+
 /*---------------Module Variables---------------------------*/
-// volatile States_t state;
+volatile States_t state;
 IntervalTimer highTimer;
 IntervalTimer lowTimer;
 
@@ -24,6 +29,9 @@ void setup() {
   Serial.begin(9600);
   while(!Serial);
 
+  // Start in the ON state
+  state = STATE_ON;
+
   // Input on Pin 23 (A9)
   pinMode(PIN_A9, INPUT);
 
@@ -36,18 +44,25 @@ void loop() {
   // Pause interrupts to read input
   noInterrupts();
   uint16_t newInput = analogRead(PIN_A9);
+  interrupts();
+
+  // Update duty cycle if necessary
+  state = newInput == 0 ? STATE_OFF : STATE_ON;
   if (newInput != lastPot) {
     high_T = map(newInput, 0, 1023, 0, SIGNAL_T);
     lastPot = newInput;
   }
-  interrupts();
 }
 
 /*----------------Module Functions--------------------------*/
 // When the high timer goes off, set output to high
 void goHigh(void) {
-  digitalWrite(PIN_A8, HIGH);
-  lowTimer.begin(goLow, high_T);
+  if (state == STATE_ON) {
+    digitalWrite(PIN_A8, HIGH);
+    lowTimer.begin(goLow, high_T);
+  } else {
+    digitalWrite(PIN_A8, LOW);
+  }
 }
 
 void goLow(void) {
